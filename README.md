@@ -6,7 +6,7 @@ ZivaDzidzo is an interactive educational intelligence platform designed to trans
 
 <br>
 
-![Logo](https://www.example.com/logo.png "Logo")
+![Logo](https://github.com/marknature/Dzidzo-EduTech_Zivadzidzo/blob/main/logo1.png "Logo")
 
 <br>
 
