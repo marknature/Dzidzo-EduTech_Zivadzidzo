@@ -92,6 +92,16 @@ npx expo start
 
 ```
 
+### Live audit workflow
+
+The judge-facing flow is ready: **paste syllabus → AI audit → SRI → explainable modernization actions**.
+
+1. Copy `backend/.env.example` to `backend/.env` and add `OPENAI_API_KEY`. The API operates in a deterministic demo mode without it, so the live experience still works reliably.
+2. To persist history, run `backend/supabase-schema.sql` in the Supabase SQL editor and add the Supabase credentials to `backend/.env`.
+3. When using a physical phone, point the Expo app at the computer running the API, for example: `EXPO_PUBLIC_API_URL=http://192.168.1.5:5000 npx expo start`. The default targets the local machine.
+
+`POST /api/audit/analyze` accepts `title`, `gradeLevel`, `syllabusText`, and optional `alpha`, returning the SRI, subject-level risk, rationale, and prioritized next actions.
+
 <br>
 
 ## 🧠 Codex & GPT-5.6 Acceleration (Judging Showcase)
