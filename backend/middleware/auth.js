@@ -1,5 +1,8 @@
 const { supabase } = require('../db');
 const supabaseService = require('../services/supabaseService');
+const { ROLES } = require('../config');
+
+const DASHBOARD_ROLES = new Set(Object.values(ROLES));
 
 // Verifies the bearer token against Supabase (no manual JWKS handling needed - the
 // anon-key client can validate a user's own token via auth.getUser), then attaches the
@@ -29,7 +32,7 @@ async function requireAuth(req, res, next) {
   if (profileError) {
     return res.status(500).json({ success: false, error: 'Could not load user profile.' });
   }
-  if (!profile) {
+  if (!profile || !profile.institution_id || !DASHBOARD_ROLES.has(profile.role)) {
     // Authenticated with Supabase but no profiles row yet - the client must call
     // POST /auth/session-sync right after sign-in/sign-up before hitting any other route.
     return res.status(409).json({ success: false, error: 'Profile not provisioned. Call /auth/session-sync first.' });

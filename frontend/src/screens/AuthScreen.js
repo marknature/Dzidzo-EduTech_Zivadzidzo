@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
-  Alert,
   Animated,
   Easing,
   KeyboardAvoidingView,
@@ -14,7 +13,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { GraduationCap, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, GraduationCap, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { colors } from '../theme/colors';
 
@@ -140,7 +139,7 @@ function BrandPanel({ isWide, isTablet, isCompact, mode, onModeChange, disabled,
   );
 }
 
-function AuthForm({ mode, email, password, loading, onEmailChange, onPasswordChange, onSubmit, onModeChange, disabled }) {
+function AuthForm({ mode, email, password, feedback, loading, onEmailChange, onPasswordChange, onSubmit, onModeChange, disabled }) {
   const copy = MODE_COPY[mode];
   const isMagicLink = mode === 'magic_link';
 
@@ -202,6 +201,17 @@ function AuthForm({ mode, email, password, loading, onEmailChange, onPasswordCha
         <Text style={styles.primaryButtonText}>{loading ? 'Please wait…' : copy.action}</Text>
       </Pressable>
 
+      {!!feedback && (
+        <View
+          accessibilityRole="alert"
+          style={[styles.feedback, feedback.tone === 'success' ? styles.feedbackSuccess : styles.feedbackError]}
+        >
+          <Text style={[styles.feedbackText, feedback.tone === 'success' ? styles.feedbackSuccessText : styles.feedbackErrorText]}>
+            {feedback.message}
+          </Text>
+        </View>
+      )}
+
       {mode === 'sign_up' && (
         <Text style={styles.termsText}>
           Creating an account does not grant access to an institution. A trusted administrator must assign your role.
@@ -241,13 +251,13 @@ function ConfigurationNotice() {
         </View>
         <Text style={styles.formTitle}>Connect this app to its institution.</Text>
         <Text style={styles.formDescription}>
-          Add the public Supabase URL and anonymous key to the frontend environment, then reload to enable secure sign-in.
+          Add the public Supabase URL and publishable key to the frontend environment, then reload to enable secure sign-in.
         </Text>
       </View>
 
       <View style={styles.setupCallout}>
         <Text style={styles.setupCode}>EXPO_PUBLIC_SUPABASE_URL</Text>
-        <Text style={styles.setupCode}>EXPO_PUBLIC_SUPABASE_ANON_KEY</Text>
+        <Text style={styles.setupCode}>EXPO_PUBLIC_SUPABASE_KEY</Text>
       </View>
       <Text style={styles.setupHint}>
         These are public client settings. Keep service-role and AI provider keys on the backend only.
@@ -256,7 +266,7 @@ function ConfigurationNotice() {
   );
 }
 
-function AuthShell({ children, intro, formTransition, isWide, isTablet, isCompact, mode, onModeChange, changingMode, canChangeMode = true }) {
+function AuthShell({ children, intro, formTransition, isWide, isTablet, isCompact, mode, onModeChange, changingMode, canChangeMode = true, onBack }) {
   const entranceTranslateY = intro.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
   const entranceScale = intro.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1] });
   const formTranslateX = formTransition.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
@@ -266,8 +276,24 @@ function AuthShell({ children, intro, formTransition, isWide, isTablet, isCompac
       <View style={styles.background}>
         <View pointerEvents="none" style={styles.backgroundMintTop} />
         <View pointerEvents="none" style={styles.backgroundMintBottom} />
+        {onBack && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to ZivaDzidzo overview"
+            onPress={onBack}
+            hitSlop={8}
+            style={({ pressed }) => [styles.backButton, isWide && styles.backButtonWide, pressed && styles.backButtonPressed]}
+          >
+            <ArrowLeft color={LIGHT_SURFACE} size={17} strokeWidth={2.3} />
+            <Text style={styles.backButtonText}>Overview</Text>
+          </Pressable>
+        )}
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, isWide ? styles.scrollContentWide : styles.scrollContentNarrow]}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isWide ? styles.scrollContentWide : styles.scrollContentNarrow,
+            onBack && !isWide && styles.scrollContentNarrowWithBack,
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -301,14 +327,15 @@ function AuthShell({ children, intro, formTransition, isWide, isTablet, isCompac
 
 // Membership is assigned by a trusted institution administrator or invite workflow.
 // Sign-up creates an auth account only; it never selects a school or role client-side.
-export default function AuthScreen() {
+export default function AuthScreen({ initialMode = 'sign_in', onBack }) {
   const { width } = useWindowDimensions();
   const isWide = width >= 760;
   const isTablet = isWide && width < 960;
   const isCompact = width < 390;
-  const [mode, setMode] = useState('sign_in'); // 'sign_in' | 'sign_up' | 'magic_link'
+  const [mode, setMode] = useState(initialMode); // 'sign_in' | 'sign_up' | 'magic_link'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
   const [changingMode, setChangingMode] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -364,6 +391,7 @@ export default function AuthScreen() {
 
   const changeMode = useCallback((nextMode) => {
     if (nextMode === mode || changingMode || loading) return;
+    setFeedback(null);
     if (reduceMotion) {
       setMode(nextMode);
       return;
@@ -386,20 +414,21 @@ export default function AuthScreen() {
 
   const handleSubmit = async () => {
     if (!email.trim()) {
-      Alert.alert('Missing email', 'Please enter your email address.');
+      setFeedback({ tone: 'error', message: 'Enter your work email address.' });
       return;
     }
+    setFeedback(null);
     setLoading(true);
     try {
       if (mode === 'magic_link') {
         const { error } = await supabase.auth.signInWithOtp({ email: email.trim() });
         if (error) throw error;
-        Alert.alert('Check your email', 'We sent you a magic sign-in link.');
+        setFeedback({ tone: 'success', message: 'Check your work email for the secure sign-in link.' });
         return;
       }
 
       if (!password) {
-        Alert.alert('Missing password', 'Please enter your password.');
+        setFeedback({ tone: 'error', message: 'Enter your password.' });
         return;
       }
 
@@ -411,14 +440,14 @@ export default function AuthScreen() {
       if (error) throw error;
 
       if (mode === 'sign_up') {
-        Alert.alert('Account created', 'Check your email to confirm your account, then sign in.');
+        setFeedback({ tone: 'success', message: 'Account created. Confirm your email, then sign in.' });
         setPassword('');
         setMode('sign_in');
       }
       // On successful sign-in, App.js's onAuthStateChange listener takes over
       // (session-sync + navigating into RootNavigator).
     } catch (error) {
-      Alert.alert('Authentication error', error.message || 'Something went wrong. Please try again.');
+      setFeedback({ tone: 'error', message: error.message || 'Something went wrong. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -433,6 +462,7 @@ export default function AuthScreen() {
     mode,
     onModeChange: changeMode,
     changingMode,
+    onBack,
   };
 
   if (!isSupabaseConfigured) {
@@ -449,10 +479,17 @@ export default function AuthScreen() {
         mode={mode}
         email={email}
         password={password}
+        feedback={feedback}
         loading={loading}
         disabled={changingMode}
-        onEmailChange={setEmail}
-        onPasswordChange={setPassword}
+        onEmailChange={(value) => {
+          setEmail(value);
+          if (feedback) setFeedback(null);
+        }}
+        onPasswordChange={(value) => {
+          setPassword(value);
+          if (feedback) setFeedback(null);
+        }}
         onSubmit={handleSubmit}
         onModeChange={changeMode}
       />
@@ -490,6 +527,33 @@ const styles = StyleSheet.create({
     bottom: -170,
     left: -100,
   },
+  backButton: {
+    position: 'absolute',
+    zIndex: 3,
+    top: 14,
+    left: 15,
+    minHeight: 38,
+    borderRadius: 19,
+    paddingHorizontal: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#303A37',
+    borderColor: '#52615C',
+    borderWidth: 1,
+  },
+  backButtonWide: {
+    top: 24,
+    left: 30,
+  },
+  backButtonPressed: {
+    opacity: 0.7,
+  },
+  backButtonText: {
+    color: LIGHT_SURFACE,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    marginLeft: 7,
+  },
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
@@ -502,6 +566,9 @@ const styles = StyleSheet.create({
   scrollContentNarrow: {
     paddingHorizontal: 16,
     paddingVertical: 18,
+  },
+  scrollContentNarrowWithBack: {
+    paddingTop: 66,
   },
   authSurface: {
     width: '100%',
@@ -777,6 +844,32 @@ const styles = StyleSheet.create({
     color: colors.graphite,
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
+  },
+  feedback: {
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+  },
+  feedbackError: {
+    backgroundColor: '#FFF0F0',
+    borderColor: '#F3B9BD',
+  },
+  feedbackSuccess: {
+    backgroundColor: '#EAF9F3',
+    borderColor: '#A9DFC9',
+  },
+  feedbackText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  feedbackErrorText: {
+    color: '#A5202A',
+  },
+  feedbackSuccessText: {
+    color: '#146144',
   },
   termsText: {
     color: LIGHT_MUTED,

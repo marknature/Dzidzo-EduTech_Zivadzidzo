@@ -128,7 +128,10 @@ Copy `frontend/.env.example` to `frontend/.env`:
 ```env
 EXPO_PUBLIC_API_URL=http://127.0.0.1:5000
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+EXPO_PUBLIC_SUPABASE_KEY=your_publishable_key
+# Required for Expo push tokens in an EAS build. This is an Expo project ID,
+# not a secret; do not put provider or Supabase service-role keys here.
+EXPO_PUBLIC_EAS_PROJECT_ID=your-eas-project-id
 ```
 
 Start both services:
@@ -142,6 +145,12 @@ npx expo start --web
 ```
 
 For a physical device, set `EXPO_PUBLIC_API_URL` to the LAN address of the machine running the API and add that web origin to `CORS_ALLOWED_ORIGINS` for browser development.
+
+## Production configuration handoff
+
+Before a live deployment, set backend-only `SUPABASE_SERVICE_ROLE_KEY`, one selected LLM provider key, and the final comma-separated `CORS_ALLOWED_ORIGINS` in the API host's secret manager. Set only `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY`, and `EXPO_PUBLIC_EAS_PROJECT_ID` in the Expo build environment. Never place an LLM key or Supabase service-role key in an `EXPO_PUBLIC_*` value. The client continues to accept the legacy `EXPO_PUBLIC_SUPABASE_ANON_KEY` name for existing deployments.
+
+For push validation, build through the configured `preview` or `production` EAS profile, sign in with a member of a dedicated demo institution, accept the notification permission, and confirm its Expo push token is stored through `/notifications/token`. Trigger a priority assessment and confirm that only an administrator or head teacher receives the aggregate-dashboard notification.
 
 ## Verification
 
