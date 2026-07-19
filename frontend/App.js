@@ -191,7 +191,10 @@ export default function App() {
   }
 
   if (!profile) {
-    const title = profileSyncing ? 'Opening your dashboard' : 'Institution access pending';
+    const membershipPending = /awaiting assignment by an institution administrator/i.test(profileError || '');
+    const title = profileSyncing
+      ? 'Opening your dashboard'
+      : (membershipPending ? 'Institution access pending' : 'Dashboard unavailable');
     const description = profileSyncing
       ? 'Verifying your institution access securely.'
       : (profileError || 'Your account is awaiting assignment by an institution administrator.');
@@ -210,7 +213,11 @@ export default function App() {
           </Text>
           {!profileSyncing && (
             <>
-              <Text className="text-ink-faint text-xs leading-relaxed text-center mt-3">A trusted administrator must assign your institution and role before school information can be opened.</Text>
+              <Text className="text-ink-faint text-xs leading-relaxed text-center mt-3">
+                {membershipPending
+                  ? 'A trusted administrator must assign your institution and role before school information can be opened.'
+                  : 'Check that the ZivaDzidzo backend is running, then try again.'}
+              </Text>
               <Button variant="secondary" className="mt-6" onPress={() => hydrateFromSession(session)}>Check again</Button>
               <Button variant="danger" className="mt-3" onPress={handleSignOut}>Sign out</Button>
             </>
