@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TextInput, Alert } from 'react-native';
-import { Shield, GraduationCap, Sparkles, CheckCircle2, AlertTriangle, CircleHelp } from 'lucide-react-native';
+import { Text, View, ScrollView, TextInput, Alert, Modal, Pressable } from 'react-native';
+import { Shield, GraduationCap, Sparkles, CheckCircle2, AlertTriangle, CircleHelp, X, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
@@ -28,6 +28,7 @@ export default function CurriculumAuditScreen() {
   const [auditSummary, setAuditSummary] = useState('Paste a syllabus to see the skills that will keep learners resilient in an AI-shaped world.');
   const [recommendations, setRecommendations] = useState([]);
   const [analysisMode, setAnalysisMode] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   const calculateLocalSRI = () => {
     let weightedNonVulnerability = 0;
@@ -89,6 +90,26 @@ export default function CurriculumAuditScreen() {
 
   const sriTone = sriScore >= 70 ? 'teal' : sriScore >= 50 ? 'gold' : 'red';
   const sriLabel = sriScore >= 70 ? '▲ AI READY' : sriScore >= 50 ? '● MODERATE RISK' : '▼ HIGH OBSOLESCENCE';
+
+  const scoreDrivers = (subject) => [
+    {
+      label: subject.vulnerability > 0.6 ? 'Automation vulnerability' : 'Applied learning resilience',
+      detail: `${Math.round(subject.vulnerability * 100)}% vulnerability based on the curriculum’s current balance of knowledge and practical work.`
+    },
+    {
+      label: 'Curriculum evidence',
+      detail: subject.rationale || 'This area has not yet been analysed in detail; run an audit for a curriculum-specific explanation.'
+    },
+    {
+      label: 'Future skills integration',
+      detail: `${futureSkillsScore}% of the wider curriculum signals skills such as judgement, collaboration, and AI literacy.`
+    }
+  ];
+
+  const nextMoveFor = (subject) => subject.modernization
+    || (subject.vulnerability > 0.6
+      ? 'Add a practical challenge where learners verify, critique, and improve AI output.'
+      : 'Add an AI-assisted reflection and evidence-based assessment rubric.');
 
   return (
     <ScrollView className="flex-1 bg-bg pt-4 px-4">
@@ -159,17 +180,22 @@ export default function CurriculumAuditScreen() {
         <Text className="text-ink font-body-semibold text-lg mb-1">Curriculum risk map</Text>
         <Text className="text-ink-faint text-xs mb-4">Tap into the story behind every score.</Text>
         {subjects.map((sub, idx) => (
-          <Card key={idx} className="mb-3">
+          <Pressable key={idx} onPress={() => setSelectedSubject(sub)} accessibilityRole="button" accessibilityLabel={`Explain ${sub.name} score`}>
+          <Card className="mb-3">
             <View className="flex-row justify-between items-start">
               <View className="flex-1 pr-4">
                 <Text className="text-ink font-body-semibold">{sub.name}</Text>
                 <Text className="text-ink-muted text-xs mt-1">Automation vulnerability: {Math.round(sub.vulnerability * 100)}%</Text>
               </View>
-              {sub.vulnerability > 0.6 ? <AlertTriangle color={colors.gold} size={18} /> : <CheckCircle2 color={colors.teal} size={18} />}
+              <View className="flex-row items-center">
+                {sub.vulnerability > 0.6 ? <AlertTriangle color={colors.gold} size={18} /> : <CheckCircle2 color={colors.teal} size={18} />}
+                <ChevronRight color={colors.inkFaint} size={18} className="ml-1" />
+              </View>
             </View>
             {!!sub.rationale && <Text className="text-ink-muted text-xs leading-relaxed mt-3">Why: {sub.rationale}</Text>}
-            {!!sub.modernization && <Text className="text-indigo text-xs leading-relaxed mt-2">Next move: {sub.modernization}</Text>}
+            <Text className="text-indigo text-xs leading-relaxed mt-2">What changed this score? Tap to explain</Text>
           </Card>
+          </Pressable>
         ))}
       </View>
 
@@ -184,6 +210,46 @@ export default function CurriculumAuditScreen() {
           ))}
         </View>
       )}
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={!!selectedSubject}
+        onRequestClose={() => setSelectedSubject(null)}
+      >
+        <Pressable className="flex-1 bg-ink/50 justify-end" onPress={() => setSelectedSubject(null)}>
+          <Pressable className="bg-surface rounded-t-[28px] px-5 pt-3 pb-9" onPress={(event) => event.stopPropagation()}>
+            <View className="w-10 h-1 rounded-full bg-border self-center mb-5" />
+            <View className="flex-row items-start justify-between mb-1">
+              <View className="flex-1 pr-4">
+                <Text className="text-ink-faint text-xs uppercase tracking-widest">Score explanation</Text>
+                <Text className="text-ink font-display text-xl mt-1">{selectedSubject?.name}</Text>
+              </View>
+              <Pressable onPress={() => setSelectedSubject(null)} className="p-2 -mr-2" accessibilityLabel="Close explanation">
+                <X color={colors.inkMuted} size={20} />
+              </Pressable>
+            </View>
+            <Text className="text-ink-muted text-sm mt-2 mb-5">Three signals shaped this score—not a judgement of teachers or learners.</Text>
+            {selectedSubject && scoreDrivers(selectedSubject).map((driver, index) => (
+              <View key={driver.label} className="flex-row mb-4">
+                <View className="w-6 h-6 rounded-full bg-indigo/20 items-center justify-center mr-3">
+                  <Text className="text-indigo font-mono-semibold text-xs">{index + 1}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-ink font-body-semibold text-sm">{driver.label}</Text>
+                  <Text className="text-ink-muted text-xs leading-relaxed mt-1">{driver.detail}</Text>
+                </View>
+              </View>
+            ))}
+            {selectedSubject && (
+              <View className="bg-indigo/15 rounded-2xl p-4 mt-1">
+                <Text className="text-indigo font-body-semibold text-xs uppercase tracking-wide">Recommended next move</Text>
+                <Text className="text-ink text-sm leading-relaxed mt-1">{nextMoveFor(selectedSubject)}</Text>
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
