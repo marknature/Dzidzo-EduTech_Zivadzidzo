@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TextInput, Alert, Modal, Pressable } from 'react-native';
+import { Text, View, ScrollView, TextInput, Alert, Modal, Pressable, useWindowDimensions, StyleSheet } from 'react-native';
 import { Shield, GraduationCap, Sparkles, CheckCircle2, AlertTriangle, CircleHelp, X, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import Card from '../components/common/Card';
@@ -14,6 +14,10 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 // before through the rest of the build - it becomes the curriculum_skills predict
 // head in Phase 2, but /api/audit/analyze keeps serving it in the meantime.
 export default function CurriculumAuditScreen() {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 760;
+  const contentWidth = Math.min(width - 32, 1120);
+  const riskCardWidth = isWide ? (contentWidth - 12) / 2 : undefined;
   const [curriculumTitle, setCurriculumTitle] = useState('Computer Science Fundamentals');
   const [rawText, setRawText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -112,7 +116,8 @@ export default function CurriculumAuditScreen() {
       : 'Add an AI-assisted reflection and evidence-based assessment rubric.');
 
   return (
-    <ScrollView className="flex-1 bg-bg pt-4 px-4">
+    <ScrollView className="flex-1 bg-bg" contentContainerStyle={styles.scrollContent}>
+      <View style={[styles.page, isWide && styles.pageWide]}>
       <View className="mb-6 flex-row items-center justify-between">
         <View>
           <Text className="text-ink-muted text-xs tracking-widest uppercase">ChiedzaAI Platform</Text>
@@ -121,7 +126,8 @@ export default function CurriculumAuditScreen() {
         <GraduationCap color={colors.teal} size={28} />
       </View>
 
-      <Card className="mb-6">
+      <View style={isWide ? styles.topGrid : undefined}>
+      <Card className="mb-6" style={isWide ? styles.topGridItem : undefined}>
         <Text className="text-ink-muted text-sm mb-1">Skills Obsolescence & Readiness Index (SRI)</Text>
         <View className="flex-row items-baseline mb-3">
           <Text className="text-ink font-mono-semibold text-5xl">{sriScore}%</Text>
@@ -139,7 +145,7 @@ export default function CurriculumAuditScreen() {
         </View>
       </Card>
 
-      <Card className="mb-6">
+      <Card className="mb-6" style={isWide ? styles.topGridItem : undefined}>
         <Text className="text-ink font-body-semibold text-base mb-3">Auditor Pipeline Input</Text>
 
         <TextInput
@@ -165,6 +171,7 @@ export default function CurriculumAuditScreen() {
           <Text className="text-bg font-body-semibold text-center">Execute Chiedza AI Audit</Text>
         </Button>
       </Card>
+      </View>
 
       {!!analysisMode && (
         <View className="bg-indigo/10 border border-indigo/25 rounded-2xl p-5 mb-6">
@@ -179,8 +186,9 @@ export default function CurriculumAuditScreen() {
       <View className="mb-8">
         <Text className="text-ink font-body-semibold text-lg mb-1">Curriculum risk map</Text>
         <Text className="text-ink-faint text-xs mb-4">Tap into the story behind every score.</Text>
+        <View style={isWide ? styles.riskGrid : undefined}>
         {subjects.map((sub, idx) => (
-          <Pressable key={idx} onPress={() => setSelectedSubject(sub)} accessibilityRole="button" accessibilityLabel={`Explain ${sub.name} score`}>
+          <Pressable key={idx} style={isWide ? { width: riskCardWidth } : undefined} onPress={() => setSelectedSubject(sub)} accessibilityRole="button" accessibilityLabel={`Explain ${sub.name} score`}>
           <Card className="mb-3">
             <View className="flex-row justify-between items-start">
               <View className="flex-1 pr-4">
@@ -197,6 +205,7 @@ export default function CurriculumAuditScreen() {
           </Card>
           </Pressable>
         ))}
+        </View>
       </View>
 
       {recommendations.length > 0 && (
@@ -218,7 +227,7 @@ export default function CurriculumAuditScreen() {
         onRequestClose={() => setSelectedSubject(null)}
       >
         <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setSelectedSubject(null)}>
-          <Pressable className="bg-surface rounded-t-[28px] px-5 pt-3 pb-9" onPress={(event) => event.stopPropagation()}>
+          <Pressable className="bg-surface rounded-t-[28px] px-5 pt-3 pb-9" style={[styles.sheet, isWide && styles.sheetWide]} onPress={(event) => event.stopPropagation()}>
             <View className="w-10 h-1 rounded-full bg-border self-center mb-5" />
             <View className="flex-row items-start justify-between mb-1">
               <View className="flex-1 pr-4">
@@ -250,6 +259,18 @@ export default function CurriculumAuditScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 },
+  page: { width: '100%', alignSelf: 'center' },
+  pageWide: { maxWidth: 1120 },
+  topGrid: { flexDirection: 'row', gap: 16, alignItems: 'stretch' },
+  topGridItem: { flex: 1 },
+  riskGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  sheet: { width: '100%' },
+  sheetWide: { width: 620, alignSelf: 'center', borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+});
