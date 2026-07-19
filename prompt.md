@@ -92,6 +92,15 @@ three shallow half-finished heads in parallel.
 
 Stop after Phase 1 and show me the working roster -> predict -> result flow before continuing.
 
+just review added feature:
+"Added the “What changed this score?” feature to [CurriculumAuditScreen.js](D:/Aiia CodeHub/ChiedzaAI/ChiedzaAI_Zivadzidzo/frontend/src/screens/CurriculumAuditScreen.js).
+Each curriculum risk card is now tappable and opens a bottom sheet showing:
+Three plain-language score drivers
+A clear note that it is not a judgement of teachers or learners
+One recommended next move
+Tap-outside and close-button controls
+It works with both OpenAI audit results and the initial demo cards. JSX syntax and diff integrity passed."
+
 ### Phase 2 — Remaining task heads + chat
 Repeat the Phase 1 pattern for:
 - Learning Outcomes head (`/predict/learning-outcomes`) — cohort/subject-level only, see the
@@ -108,6 +117,7 @@ Then build the chat interface:
   streaming path is reasonably simple to wire in React Native; otherwise a clean
   loading-state-then-full-response is an acceptable fallback — don't burn a day fighting
   RN streaming ergonomics if it's not working smoothly, ask me first.
+- green and blue  is ziva dzidzos main color (orange is chiedza ai's main color)
 
 ### Phase 3 — MySchool, roster import, reports, notifications
 1. `MySchoolScreen.tsx` — departments/subjects as a simple accordion/tree (not a canvas-based

@@ -69,7 +69,7 @@ export default function AuthScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-bg">
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-10">
-          <GraduationCap color={colors.gold} size={40} />
+          <GraduationCap color={colors.teal} size={40} />
           <Text className="text-ink font-display text-2xl mt-3">ZivaDzidzo</Text>
           <Text className="text-ink-muted text-xs uppercase tracking-widest mt-1">ChiedzaAI Platform</Text>
         </View>

@@ -42,8 +42,8 @@ export default function ContributingFactorsLedger({ contributingFactors, caveats
         })}
       </View>
 
-      <View className="border-t border-border pt-3 bg-gold/5 -mx-1 px-1 rounded-lg">
-        <Text className="text-[11px] text-gold font-body-semibold uppercase tracking-wide mb-1">
+      <View className="border-t border-border pt-3 bg-indigo/5 -mx-1 px-1 rounded-lg">
+        <Text className="text-[11px] text-indigo font-body-semibold uppercase tracking-wide mb-1">
           How to read this
         </Text>
         <Text className="text-[11px] text-ink-faint leading-relaxed">{caveats}</Text>

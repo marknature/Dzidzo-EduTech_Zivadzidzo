@@ -118,7 +118,7 @@ export default function CurriculumAuditScreen() {
           <Text className="text-ink-muted text-xs tracking-widest uppercase">ChiedzaAI Platform</Text>
           <Text className="text-ink font-display text-2xl">ZivaDzidzo</Text>
         </View>
-        <GraduationCap color={colors.gold} size={28} />
+        <GraduationCap color={colors.teal} size={28} />
       </View>
 
       <Card className="mb-6">
@@ -204,7 +204,7 @@ export default function CurriculumAuditScreen() {
           <Text className="text-ink font-body-semibold text-lg mb-4">Recommended next moves</Text>
           {recommendations.map((recommendation, index) => (
             <Card key={index} className="mb-3 flex-row">
-              <Text className="text-gold font-mono-medium mr-3">0{index + 1}</Text>
+              <Text className="text-teal font-mono-medium mr-3">0{index + 1}</Text>
               <Text className="text-ink-muted text-sm leading-relaxed flex-1">{recommendation}</Text>
             </Card>
           ))}

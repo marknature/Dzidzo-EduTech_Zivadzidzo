@@ -21,7 +21,7 @@ const NavTheme = {
     background: colors.bg,
     card: colors.bg,
     border: colors.border,
-    primary: colors.gold,
+    primary: colors.teal,
   },
 };
 
@@ -42,7 +42,7 @@ export default function RootNavigator({ profile, userEmail, onSignOut }) {
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
-          tabBarActiveTintColor: colors.gold,
+          tabBarActiveTintColor: colors.teal,
           tabBarInactiveTintColor: colors.inkFaint,
           tabBarIcon: ({ color, size }) => {
             const Icon = ICONS[route.name];

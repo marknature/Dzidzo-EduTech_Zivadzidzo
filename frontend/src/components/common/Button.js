@@ -4,7 +4,7 @@ import { Pressable, Text, ActivityIndicator } from 'react-native';
 // Ported from ZivaBasa's Button.jsx. No framer-motion "magnetic hover" (that's a
 // pointer/desktop concept) - Pressable's pressed-state opacity dip is the RN equivalent.
 const VARIANTS = {
-  primary: { container: 'bg-gold', text: 'text-bg font-body-semibold' },
+  primary: { container: 'bg-teal', text: 'text-bg font-body-semibold' },
   secondary: { container: 'bg-surface2 border border-border', text: 'text-ink font-body-semibold' },
   ghost: { container: 'bg-transparent', text: 'text-ink-muted font-body-semibold' },
   danger: { container: 'bg-red/10 border border-red/25', text: 'text-red font-body-semibold' },

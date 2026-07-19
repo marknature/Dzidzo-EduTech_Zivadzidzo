@@ -9,7 +9,7 @@ export default function SettingsScreen({ profile, userEmail, onSignOut }) {
   return (
     <View className="flex-1 bg-bg px-6 pt-8">
       <View className="items-center mb-8">
-        <SettingsIcon color={colors.gold} size={32} />
+        <SettingsIcon color={colors.teal} size={32} />
         <Text className="text-ink font-display text-xl mt-3">Settings</Text>
       </View>
 
@@ -20,8 +20,8 @@ export default function SettingsScreen({ profile, userEmail, onSignOut }) {
         {!!profile?.role && <Text className="text-ink-faint text-xs mt-1">Role: {profile.role}</Text>}
       </Card>
 
-      <View className="bg-gold/10 border border-gold/25 rounded-2xl p-5 mb-6 flex-row items-start">
-        <ShieldAlert color={colors.gold} size={18} />
+      <View className="bg-indigo/10 border border-indigo/25 rounded-2xl p-5 mb-6 flex-row items-start">
+        <ShieldAlert color={colors.indigo} size={18} />
         <Text className="text-ink-muted text-xs leading-relaxed ml-3 flex-1">
           Every ZivaDzidzo prediction is a GPT-4o structured-output completion, not a trained model, and its
           explanation is self-reported, not a mechanistic decomposition. See KNOWN_LIMITATIONS.md.

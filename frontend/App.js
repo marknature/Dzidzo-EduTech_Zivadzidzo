@@ -90,7 +90,7 @@ export default function App() {
     return (
       <View className="flex-1 bg-bg items-center justify-center">
         <StatusBar style="light" />
-        <ActivityIndicator color={colors.gold} />
+        <ActivityIndicator color={colors.teal} />
       </View>
     );
   }

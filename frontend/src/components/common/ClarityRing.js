@@ -10,10 +10,10 @@ const COLOR_MAP = { gold: colors.gold, teal: colors.teal, red: colors.red, indig
 // Ported from ZivaBasa's ClarityRing.jsx - the platform's one recurring signature shape.
 // mode="loading": indeterminate spin. mode="confidence": fills to `value` (0..1),
 // spring-ish ease. mode="static": fixed partial arc, used small in nav/branding.
-export default function ClarityRing({ mode = 'static', value = 0, size = 56, strokeWidth = 5, color = 'gold', label }) {
+export default function ClarityRing({ mode = 'static', value = 0, size = 56, strokeWidth = 5, color = 'teal', label }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeColor = COLOR_MAP[color] || colors.gold;
+  const strokeColor = COLOR_MAP[color] || colors.teal;
 
   const spin = useRef(new Animated.Value(0)).current;
   const fill = useRef(new Animated.Value(0)).current;

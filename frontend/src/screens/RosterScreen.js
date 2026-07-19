@@ -140,14 +140,14 @@ export default function RosterScreen() {
   return (
     <ScrollView
       className="flex-1 bg-bg pt-4 px-4"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.gold} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.teal} />}
     >
       <View className="mb-6 flex-row items-center justify-between">
         <View>
           <Text className="text-ink-muted text-xs tracking-widest uppercase">Teacher Readiness</Text>
           <Text className="text-ink font-display text-2xl">Roster</Text>
         </View>
-        <Users color={colors.gold} size={28} />
+        <Users color={colors.teal} size={28} />
       </View>
 
       {loadingList && (
