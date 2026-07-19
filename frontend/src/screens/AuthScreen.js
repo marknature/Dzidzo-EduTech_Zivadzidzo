@@ -232,7 +232,7 @@ function AuthForm({ mode, email, password, feedback, loading, onEmailChange, onP
         <View style={styles.linkDivider} />
         <ModeLink
           disabled={loading || disabled}
-          onPress={() => onModeChange(mode === 'sign_in' ? 'sign_up' : 'sign_in')}
+          onPress={() => onModeChange(mode === 'sign_up' ? 'sign_in' : 'sign_up')}
         >
           {mode === 'sign_in' || isMagicLink ? 'Create an account' : 'Sign in'}
         </ModeLink>
