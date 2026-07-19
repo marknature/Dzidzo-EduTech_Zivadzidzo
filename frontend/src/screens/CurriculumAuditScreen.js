@@ -217,7 +217,7 @@ export default function CurriculumAuditScreen() {
         visible={!!selectedSubject}
         onRequestClose={() => setSelectedSubject(null)}
       >
-        <Pressable className="flex-1 bg-ink/50 justify-end" onPress={() => setSelectedSubject(null)}>
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={() => setSelectedSubject(null)}>
           <Pressable className="bg-surface rounded-t-[28px] px-5 pt-3 pb-9" onPress={(event) => event.stopPropagation()}>
             <View className="w-10 h-1 rounded-full bg-border self-center mb-5" />
             <View className="flex-row items-start justify-between mb-1">
