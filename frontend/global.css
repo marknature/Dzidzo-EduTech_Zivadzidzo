@@ -1,0 +1,7 @@
+/* NativeWind v2 on web (react-native-web) needs a real generated Tailwind stylesheet -
+   unlike native, where the babel plugin compiles className straight to style objects at
+   build time, web leaves className as literal class strings and expects CSS to back them.
+   Metro's web CSS pipeline picks this up via postcss.config.js (tailwindcss + autoprefixer). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
