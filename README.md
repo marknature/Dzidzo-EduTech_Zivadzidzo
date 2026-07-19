@@ -2,7 +2,7 @@
 
 ZivaDzidzo turns approved school-level context into practical curriculum, staff-readiness, and cohort-outcomes decision support for the OpenAI Build Week Education track.
 
-It is intentionally **LLM-native**: every assessment uses OpenAI Structured Outputs with a pinned model snapshot and a checked JSON schema. It does not train, serve, or claim a predictive machine-learning model.
+It is intentionally **LLM-native**: OpenAI Structured Outputs are the default production route, with a checked JSON schema and pinned OpenAI snapshots. A backend operator may explicitly select Gemini or Anthropic for the three structured assessment heads; every provider response is still validated by the same server-side JSON/Zod contracts. It does not train, serve, or claim a predictive machine-learning model.
 
 ## What is built
 
@@ -18,9 +18,9 @@ It is intentionally **LLM-native**: every assessment uses OpenAI Structured Outp
 
 ## Trust and data boundaries
 
-- Pinned dated snapshots are configured in [`backend/config.js`](backend/config.js): `gpt-4o-2024-11-20` for structured assessment and `gpt-4o-mini-2024-07-18` for chat.
+- OpenAI remains the default/primary provider, configured in [`backend/config.js`](backend/config.js) with pinned dated snapshots: `gpt-4o-2024-11-20` for structured assessment and `gpt-4o-mini-2024-07-18` for chat. Gemini and Anthropic are optional, backend-only structured-assessment routes selected by `LLM_PROVIDER`; there is no silent failover.
 - Scores, confidence, caveats, and contributing factors are LLM-reasoned decision support—not causal proof, a trained model, or an automated decision.
-- ZivaDzidzo never accepts, stores, sends to OpenAI, or displays learner-level identifiers. Learning Outcomes accepts cohort aggregates only.
+- ZivaDzidzo never accepts, stores, sends to an LLM provider, or displays learner-level identifiers. Learning Outcomes accepts cohort aggregates only.
 - Supabase RLS scopes data to an institution. Profile roles and institution membership cannot be self-assigned through the client.
 - Service-role credentials are backend-only. Never place them in `frontend/.env`.
 
@@ -32,7 +32,10 @@ See [`prompt.md`](prompt.md) for the canonical product/AI contract and [`KNOWN_L
 Expo / React Native + NativeWind
           │ bearer token
           ▼
-Express API ── OpenAI Structured Outputs (pinned snapshots)
+Express API ── server-selected structured LLM provider
+   │              ├─ OpenAI (default, pinned snapshots)
+   │              ├─ Gemini (optional assessment route)
+   │              └─ Anthropic (optional assessment route)
    │       └─ independent SRI calculation
    ▼
 Supabase Auth + Postgres + RLS + private report Storage
@@ -56,13 +59,36 @@ Copy [`backend/.env.example`](backend/.env.example) to `backend/.env` and set:
 
 ```env
 OPENAI_API_KEY=your_backend_only_key
+LLM_PROVIDER=openai
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_backend_only_service_role_key
 CORS_ALLOWED_ORIGINS=http://localhost:8081,http://127.0.0.1:8081
 ```
 
-The backend fails closed if `OPENAI_API_KEY` is absent: it does not generate heuristic, mock, offline, or trained-model replacements.
+The backend fails closed if the selected provider's key is absent: it does not generate heuristic, mock, offline, or trained-model replacements.
+
+### 2a. Optional structured-assessment providers
+
+OpenAI is the default and is the recommended Build Week configuration. To deliberately use a different provider for all three structured assessment heads and the legacy curriculum-audit compatibility route, set **one** server-side provider and its key in `backend/.env`:
+
+```env
+# Gemini structured assessments
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_backend_only_gemini_key
+GEMINI_PREDICT_MODEL=gemini-2.5-flash
+```
+
+```env
+# Anthropic structured assessments
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your_backend_only_anthropic_key
+ANTHROPIC_PREDICT_MODEL=claude-haiku-4-5-20251001
+```
+
+Provider selection is made only on the backend, is captured with the model/prompt version in prediction metadata, and never falls back automatically. Do not place any provider key in `frontend/.env`, an `EXPO_PUBLIC_*` variable, source control, or a chat transcript. Gemini and Anthropic return provider-reported token usage where available, but ZivaDzidzo intentionally does not invent a dollar estimate for them.
+
+Tool-enabled **ZivaDzidzo Assistant** chat remains OpenAI-only because it persists the OpenAI Chat Completions tool-call protocol. If `LLM_PROVIDER` is Gemini or Anthropic, assessments remain available but chat returns a clear capability message rather than silently dropping tools. An Anthropic consumer/free chat plan is not an API credential; use an Anthropic API account with available credits if selecting that provider.
 
 ### 3. Apply database migrations
 

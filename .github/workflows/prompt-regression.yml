@@ -1,11 +1,35 @@
-name: Prompt regression
+name: Prompt and schema regression
 on:
   pull_request:
     paths:
+      - 'prompt.md'
+      - 'backend/config.js'
       - 'backend/schemas/**'
-      - 'backend/services/openaiService.js'
+      - 'backend/services/**'
+      - 'backend/auditService.js'
+      - 'backend/routes/**'
       - 'backend/tests/**'
+      - 'backend/package.json'
+      - 'backend/package-lock.json'
       - '.github/workflows/prompt-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'prompt.md'
+      - 'backend/config.js'
+      - 'backend/schemas/**'
+      - 'backend/services/**'
+      - 'backend/auditService.js'
+      - 'backend/routes/**'
+      - 'backend/tests/**'
+      - 'backend/package.json'
+      - 'backend/package-lock.json'
+      - '.github/workflows/prompt-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -20,9 +44,10 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+      - run: npm run verify:migrations
       - run: npm test -- --runInBand
       - name: Prove cross-institution RLS isolation
-        if: ${{ secrets.RLS_TEST_USER_A_TOKEN != '' && secrets.RLS_TEST_USER_B_INSTITUTION_ID != '' }}
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_ANON_KEY != '' && secrets.RLS_TEST_USER_A_TOKEN != '' && secrets.RLS_TEST_USER_B_INSTITUTION_ID != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}

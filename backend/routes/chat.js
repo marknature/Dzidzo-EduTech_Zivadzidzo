@@ -3,7 +3,7 @@ const { requireAuth } = require('../middleware/auth');
 const supabaseService = require('../services/supabaseService');
 const { runChatCompletion, estimateCostUsd } = require('../services/openaiService');
 const { toolDefinitions, executeTool } = require('../services/chatTools');
-const { OPENAI_MODELS } = require('../config');
+const { chatModelFor } = require('../config');
 const { userRequestLimiter } = require('../middleware/security');
 const { rejectLearnerIdentifiers } = require('../services/privacyService');
 
@@ -22,9 +22,10 @@ const MAX_TOOL_ROUNDS = 4;
 const MAX_TOOL_RESULT_CHARS = 8000;
 
 // Every tool_calls value we persist has one of two shapes depending on role:
-//   assistant row that requested tools: the raw OpenAI tool_calls array
+//   assistant row that requested tools: the normalized OpenAI-compatible tool_calls array
 //   tool row (the result): { tool_call_id, name }
-// toOpenAIMessage() reconstructs the exact shape the Chat Completions API expects on replay.
+// The current tool-enabled chat protocol is intentionally OpenAI-only; the provider
+// layer returns a clear capability error rather than silently dropping tool calls.
 function toOpenAIMessage(row) {
   if (row.role === 'assistant' && Array.isArray(row.tool_calls) && row.tool_calls.length) {
     return { role: 'assistant', content: row.content || null, tool_calls: row.tool_calls };
@@ -93,9 +94,10 @@ router.post('/message', async (req, res) => {
     const usageTotals = { prompt_tokens: 0, completion_tokens: 0 };
     const toolCallLog = [];
     let finalAssistantContent = null;
+    const selectedChatModel = chatModelFor();
 
     for (let round = 0; round < MAX_TOOL_ROUNDS && finalAssistantContent === null; round += 1) {
-      const completion = await runChatCompletion({ messages: workingMessages, tools: toolDefinitions, model: OPENAI_MODELS.CHAT });
+      const completion = await runChatCompletion({ messages: workingMessages, tools: toolDefinitions, model: selectedChatModel });
       if (completion.usage) {
         usageTotals.prompt_tokens += completion.usage.prompt_tokens || 0;
         usageTotals.completion_tokens += completion.usage.completion_tokens || 0;
@@ -144,18 +146,22 @@ router.post('/message', async (req, res) => {
       await supabaseService.insertChatMessage(client, { session_id: session.id, role: 'assistant', content: finalAssistantContent, tool_calls: null });
     }
 
-    const costUsd = estimateCostUsd(OPENAI_MODELS.CHAT, usageTotals);
+    const costUsd = estimateCostUsd(selectedChatModel, usageTotals);
     await supabaseService.insertAutoLlmCostEntry({
       institutionId: req.profile.institution_id,
       amountUsd: costUsd,
-      note: `Chat turn (${OPENAI_MODELS.CHAT}, ${toolCallLog.length} tool call(s))`,
+      note: `Chat turn (${selectedChatModel}, ${toolCallLog.length} tool call(s))`,
       createdBy: req.profile.id,
     });
 
     res.json({ success: true, sessionId: session.id, reply: finalAssistantContent, toolCallLog });
   } catch (error) {
-    if (error.code === 'OPENAI_NOT_CONFIGURED') {
-      return res.status(503).json({ success: false, error: 'OPENAI_API_KEY is not configured on the backend.' });
+    if (
+      error.code === 'LLM_PROVIDER_NOT_CONFIGURED'
+      || error.code === 'LLM_PROVIDER_UNSUPPORTED'
+      || error.code === 'LLM_PROVIDER_CAPABILITY_UNSUPPORTED'
+    ) {
+      return res.status(503).json({ success: false, error: error.message });
     }
     console.error('Chat message failed:', error.message);
     res.status(502).json({ success: false, error: 'The assistant could not respond. Please retry.' });

@@ -4,22 +4,24 @@ module.exports = {
   content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      // Ported from ZivaBasa's design tokens (frontend/src/index.css / tailwind.config.js in
-      // ZivaBasa-MVP) - the "ChiedzaAI family" palette. Dark-only for now: this app has no
-      // theme toggle yet, so the light-mode override values aren't ported.
+      // ZivaDzidzo's Graphite/Sky Mint palette. The app remains dark-first, with light
+      // surfaces used deliberately for focused workflows such as authentication.
       colors: {
-        bg: "#0B0F17",
-        surface: "#131826",
-        surface2: "#1B2333",
-        border: "#26304A",
-        ink: "#EDEFF5",
-        "ink-muted": "#A8AFC2",
-        "ink-faint": "#646C80",
+        graphite: "#25272C",
+        "sky-mint": "#B8F7E4",
+        "deep-teal": "#0F766E",
+        bg: "#25272C",
+        surface: "#303238",
+        surface2: "#3A3D44",
+        border: "#50545C",
+        ink: "#F7FAF9",
+        "ink-muted": "#C9D4D0",
+        "ink-faint": "#919B98",
         // Legacy token name kept so existing moderate-risk cards do not break. The
         // actual value is blue; orange is reserved for ChiedzaAI-only brand moments.
         gold: "#38BDF8",
-        teal: "#2FBF9F",
-        blue: "#38BDF8",
+        teal: "#B8F7E4",
+        blue: "#2563EB",
         red: "#E5484D",
         indigo: "#6C7CFF",
         violet: "#A881FF",

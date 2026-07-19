@@ -1,6 +1,6 @@
 // Privacy boundary for inputs that may describe learning outcomes. ZivaDzidzo
 // accepts only cohort aggregates: student/learner identifiers must be rejected
-// before text is sent to OpenAI or persisted to Supabase.
+// before text is sent to the selected LLM provider or persisted to Supabase.
 
 const LEARNER_IDENTIFIER_KEYS = new Set([
   'studentid', 'studentname', 'studentnumber', 'studentemail',

@@ -183,3 +183,9 @@ ios/.xcode.env.local
 android/.gradle/
 android/app/build/
 android/local.properties
+
+# Historical research data stays local only. The archive README and non-sensitive
+# experiment provenance remain versioned, but learner-like source CSVs and generated
+# Python bytecode must never be reintroduced into the active repository.
+/backend/archive/legacy-neural-fusion/raw/
+/backend/archive/legacy-neural-fusion/notebooks/__pycache__/

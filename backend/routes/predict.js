@@ -10,8 +10,8 @@ router.use(requireAuth);
 router.use(userRequestLimiter);
 
 function handlePredictionError(res, error, taskLabel) {
-  if (error.code === 'OPENAI_NOT_CONFIGURED') {
-    return res.status(503).json({ success: false, error: 'OPENAI_API_KEY is not configured on the backend.' });
+  if (error.code === 'LLM_PROVIDER_NOT_CONFIGURED' || error.code === 'LLM_PROVIDER_UNSUPPORTED') {
+    return res.status(503).json({ success: false, error: error.message });
   }
   if (error.code === 'VALIDATION') {
     return res.status(400).json({ success: false, error: error.message });

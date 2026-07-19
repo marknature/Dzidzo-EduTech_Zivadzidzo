@@ -1,6 +1,6 @@
 const { z } = require('zod');
 
-// Runtime mirrors of the strict OpenAI JSON schemas. These are deliberately reused by
+// Runtime mirrors of the strict provider-neutral JSON schemas. These are deliberately reused by
 // all three heads so the common prediction contract cannot drift between implementations.
 const contributingFactorZod = z.object({
   factor: z.string().min(1),

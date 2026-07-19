@@ -2,7 +2,7 @@ const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } = require
 const PDFDocument = require('pdfkit');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const { supabaseAdmin } = require('../db');
-const { OPENAI_MODELS } = require('../config');
+const { chatModelVersionTag } = require('../config');
 
 const BUCKET = process.env.SUPABASE_REPORTS_BUCKET || 'reports';
 const chartCanvas = new ChartJSNodeCanvas({ width: 800, height: 380, backgroundColour: '#ffffff' });
@@ -133,7 +133,7 @@ async function generateChatReport({ messages, institutionId, createdBy, format, 
     actions: ['Review the conversation transcript and any linked assessments with your leadership team.'],
     caveats: 'This transcript may include LLM-reasoned guidance. Treat it as decision support, not a causal or definitive assessment.',
     generatedAt: new Date().toISOString(),
-    modelVersion: `${OPENAI_MODELS.CHAT}::chat_consultation_v1`,
+    modelVersion: chatModelVersionTag(),
   };
   content.executiveSummary = 'This report preserves a leadership consultation transcript. It is not an assessment of an individual learner and should be reviewed alongside the underlying aggregate evidence.';
   const extension = format === 'pdf' ? 'pdf' : 'docx';

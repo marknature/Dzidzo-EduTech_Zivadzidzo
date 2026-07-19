@@ -1,3 +1,5 @@
+require('dotenv').config({ quiet: true });
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -12,8 +14,7 @@ const reportsRoutes = require('./routes/reports');
 const notificationsRoutes = require('./routes/notifications');
 const { ipLimiter } = require('./middleware/security');
 const { requireAuth, requireRole } = require('./middleware/auth');
-const { PREDICTION_WRITE_ROLES, TABLES, CORS_ALLOWED_ORIGINS } = require('./config');
-require('dotenv').config({ quiet: true });
+const { PREDICTION_WRITE_ROLES, TABLES, CORS_ALLOWED_ORIGINS, configuredLlmProvider } = require('./config');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,7 +44,13 @@ app.use('/notifications', notificationsRoutes);
 
 // Base Route
 app.get('/', (req, res) => {
-  res.json({ message: "ZivaDzidzo API is live!", openaiConfigured: Boolean(process.env.OPENAI_API_KEY) });
+  let llmProvider = 'invalid';
+  try { llmProvider = configuredLlmProvider(); } catch { /* surfaced on the first model request */ }
+  res.json({
+    message: 'ZivaDzidzo API is live!',
+    llmProvider,
+    llmConfigured: Boolean({ openai: process.env.OPENAI_API_KEY, gemini: process.env.GEMINI_API_KEY, anthropic: process.env.ANTHROPIC_API_KEY }[llmProvider]),
+  });
 });
 
 app.post('/api/audit/analyze', requireAuth, requireRole(...PREDICTION_WRITE_ROLES), async (req, res) => {
@@ -79,8 +86,8 @@ app.post('/api/audit/analyze', requireAuth, requireRole(...PREDICTION_WRITE_ROLE
 
     res.status(200).json({ success: true, audit: { ...audit, title, gradeLevel }, saved });
   } catch (error) {
-    if (error.code === 'OPENAI_NOT_CONFIGURED') {
-      return res.status(503).json({ success: false, error: 'OPENAI_API_KEY is not configured on the backend.' });
+    if (error.code === 'LLM_PROVIDER_NOT_CONFIGURED' || error.code === 'LLM_PROVIDER_UNSUPPORTED') {
+      return res.status(503).json({ success: false, error: error.message });
     }
     if (error.code === 'VALIDATION') {
       return res.status(400).json({ success: false, error: error.message });

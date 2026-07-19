@@ -1,5 +1,5 @@
 const { runStructuredPrediction } = require('./services/openaiService');
-const { TASK_TYPES, modelVersionTag } = require('./config');
+const { TASK_TYPES, modelVersionTag, configuredLlmProvider } = require('./config');
 const { rejectLearnerIdentifiers } = require('./services/privacyService');
 
 const MAX_SYLLABUS_CHARS = 16000;
@@ -69,7 +69,7 @@ function normalizeAudit(audit) {
   };
 }
 
-async function analyzeWithOpenAI({ title, gradeLevel, syllabusText }) {
+async function analyzeWithLlm({ title, gradeLevel, syllabusText }) {
   const { result, modelUsed, costUsd } = await runStructuredPrediction({
     schema: auditSchema,
     systemPrompt: 'You are ZivaDzidzo, a careful curriculum-modernization analyst. Analyse only the supplied syllabus. Estimate automation vulnerability as a learning-design risk, never as a judgement of teachers or learners. Give concrete, age-appropriate modernization steps.',
@@ -80,11 +80,11 @@ async function analyzeWithOpenAI({ title, gradeLevel, syllabusText }) {
 
 async function createAudit(input) {
   rejectLearnerIdentifiers(input.syllabusText);
-  const audit = await analyzeWithOpenAI(input);
+  const audit = await analyzeWithLlm(input);
   return {
     ...audit,
     readinessIndex: calculateReadiness(audit.subjects, audit.futureSkillsScore, input.alpha),
-    analysisMode: 'openai',
+    analysisMode: configuredLlmProvider(),
     modelVersion: modelVersionTag(TASK_TYPES.CURRICULUM_SKILLS),
   };
 }

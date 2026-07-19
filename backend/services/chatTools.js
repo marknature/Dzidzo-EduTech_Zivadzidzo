@@ -2,7 +2,7 @@ const predictionService = require('./predictionService');
 const supabaseService = require('./supabaseService');
 const { TASK_TYPES, PREDICTION_WRITE_ROLES } = require('../config');
 
-// OpenAI function-calling tool registry for the chat assistant. Each tool routes into the
+// OpenAI Chat Completions tool registry for the chat assistant. Each tool routes into the
 // SAME predictionService functions the HTTP predict routes use, so a prediction run via chat
 // is persisted identically (predictions row, cost entry, model_version) to one run via the
 // Roster/Predict screens - not a parallel, divergent code path.
