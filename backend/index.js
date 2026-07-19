@@ -97,6 +97,21 @@ app.post('/api/audit/analyze', requireAuth, requireRole(...PREDICTION_WRITE_ROLE
   }
 });
 
+// Never expose Express stack traces to a browser that has an unapproved origin.
+// A LAN/tablet origin still needs explicit CORS_ALLOWED_ORIGINS configuration, but
+// the client now receives a safe, actionable response instead of development HTML.
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  if (error?.message === 'Origin is not allowed by this API.') {
+    return res.status(403).json({
+      success: false,
+      error: 'This app origin is not allowed by the ZivaDzidzo API. Add it to CORS_ALLOWED_ORIGINS on the backend.',
+    });
+  }
+  console.error('Unhandled API error:', error?.message || error);
+  return res.status(500).json({ success: false, error: 'The ZivaDzidzo API encountered an unexpected error.' });
+});
+
 // Bind explicitly to all IPv4 interfaces
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://127.0.0.1:${PORT}`);
