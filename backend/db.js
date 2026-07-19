@@ -60,3 +60,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 module.exports = supabase;
 module.exports.supabase = supabase;
 module.exports.supabaseAdmin = supabaseAdmin;
+// Anon-key config only (never the service role key) - safe to reuse for constructing
+// additional per-request clients (see services/supabaseService.js's clientForToken).
+module.exports.supabaseUrl = supabaseUrl;
+module.exports.supabaseAnonKey = supabaseAnonKey;

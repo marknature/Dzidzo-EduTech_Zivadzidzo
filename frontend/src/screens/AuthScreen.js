@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { GraduationCap, Mail, Lock } from 'lucide-react-native';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { colors } from '../theme/colors';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
 
 // Single-institution mode (Phase 0): every new sign-up is provisioned onto the one
 // seeded institution server-side by POST /auth/session-sync, so there is no
@@ -14,9 +17,9 @@ export default function AuthScreen() {
 
   if (!isSupabaseConfigured) {
     return (
-      <View className="flex-1 bg-[#0A0F1D] items-center justify-center px-6">
-        <Text className="text-white text-lg font-bold mb-2 text-center">Supabase is not configured</Text>
-        <Text className="text-gray-400 text-sm text-center">
+      <View className="flex-1 bg-bg items-center justify-center px-6">
+        <Text className="text-ink font-display-semibold text-lg mb-2 text-center">Supabase is not configured</Text>
+        <Text className="text-ink-muted text-sm text-center">
           Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in frontend/.env to enable sign-in.
         </Text>
       </View>
@@ -63,24 +66,21 @@ export default function AuthScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-[#0A0F1D]"
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-bg">
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-10">
-          <GraduationCap color="#3B82F6" size={40} />
-          <Text className="text-white text-2xl font-bold mt-3">ZivaDzidzo</Text>
-          <Text className="text-gray-400 text-xs uppercase tracking-widest mt-1">ChiedzaAI Platform</Text>
+          <GraduationCap color={colors.gold} size={40} />
+          <Text className="text-ink font-display text-2xl mt-3">ZivaDzidzo</Text>
+          <Text className="text-ink-muted text-xs uppercase tracking-widest mt-1">ChiedzaAI Platform</Text>
         </View>
 
-        <View className="bg-[#141B2D] border border-gray-800 rounded-3xl p-5">
-          <View className="flex-row items-center bg-[#0A0F1D] border border-gray-800 rounded-xl px-4 mb-3">
-            <Mail color="#6B7280" size={16} />
+        <Card>
+          <View className="flex-row items-center bg-bg border border-border rounded-xl px-4 mb-3">
+            <Mail color={colors.inkFaint} size={16} />
             <TextInput
-              className="flex-1 text-white px-3 py-3"
+              className="flex-1 text-ink font-body px-3 py-3"
               placeholder="Email"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={colors.inkFaint}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -89,12 +89,12 @@ export default function AuthScreen() {
           </View>
 
           {mode !== 'magic_link' && (
-            <View className="flex-row items-center bg-[#0A0F1D] border border-gray-800 rounded-xl px-4 mb-4">
-              <Lock color="#6B7280" size={16} />
+            <View className="flex-row items-center bg-bg border border-border rounded-xl px-4 mb-4">
+              <Lock color={colors.inkFaint} size={16} />
               <TextInput
-                className="flex-1 text-white px-3 py-3"
+                className="flex-1 text-ink font-body px-3 py-3"
                 placeholder="Password"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor={colors.inkFaint}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
@@ -102,34 +102,24 @@ export default function AuthScreen() {
             </View>
           )}
 
-          <TouchableOpacity
-            className="bg-accent rounded-xl py-4 items-center justify-center mb-3"
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-bold">
-                {mode === 'sign_in' ? 'Sign In' : mode === 'sign_up' ? 'Create Account' : 'Send Magic Link'}
-              </Text>
-            )}
-          </TouchableOpacity>
+          <Button onPress={handleSubmit} loading={loading} className="mb-3">
+            {mode === 'sign_in' ? 'Sign In' : mode === 'sign_up' ? 'Create Account' : 'Send Magic Link'}
+          </Button>
 
           <View className="flex-row justify-center flex-wrap">
             <TouchableOpacity onPress={() => setMode(mode === 'sign_in' ? 'sign_up' : 'sign_in')}>
-              <Text className="text-blue-400 text-xs">
+              <Text className="text-indigo text-xs">
                 {mode === 'sign_in' ? "Need an account? Sign up" : 'Have an account? Sign in'}
               </Text>
             </TouchableOpacity>
-            <Text className="text-gray-600 text-xs mx-2">·</Text>
+            <Text className="text-ink-faint text-xs mx-2">·</Text>
             <TouchableOpacity onPress={() => setMode(mode === 'magic_link' ? 'sign_in' : 'magic_link')}>
-              <Text className="text-blue-400 text-xs">
+              <Text className="text-indigo text-xs">
                 {mode === 'magic_link' ? 'Use a password instead' : 'Use a magic link instead'}
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Card>
       </View>
     </KeyboardAvoidingView>
   );

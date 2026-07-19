@@ -1,0 +1,103 @@
+const { createClient } = require('@supabase/supabase-js');
+const { supabase: anonClient, supabaseAdmin, supabaseUrl, supabaseAnonKey } = require('../db');
+const { TABLES } = require('../config');
+
+// Per-request client authenticated as the calling user (anon key + their JWT). Queries made
+// with this client run under Postgres RLS as that user - this is the "everything server-side
+// still goes through RLS" rule from prompt.md, so a bug in a route can't silently read/write
+// across institutions. Only privileged, backend-only operations should use supabaseAdmin
+// directly instead of this.
+function clientForToken(token) {
+  if (!supabaseUrl || !supabaseAnonKey) return anonClient; // unconfigured-stub fallback, same as db.js
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+async function listTeachers(client, institutionId) {
+  const { data, error } = await client
+    .from(TABLES.TEACHERS)
+    .select('id, full_name, subject_id, years_experience, ai_tool_usage_frequency, digital_skills_score, training_hours, last_assessed_at')
+    .eq('institution_id', institutionId)
+    .order('full_name', { ascending: true });
+  if (error) throw new Error(`Could not list teachers: ${error.message}`);
+  return data;
+}
+
+async function getTeacherById(client, id) {
+  const { data, error } = await client
+    .from(TABLES.TEACHERS)
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load teacher: ${error.message}`);
+  return data;
+}
+
+async function insertTeacher(client, teacher) {
+  const { data, error } = await client.from(TABLES.TEACHERS).insert([teacher]).select().single();
+  if (error) throw new Error(`Could not create teacher: ${error.message}`);
+  return data;
+}
+
+async function updateTeacher(client, id, patch) {
+  const { data, error } = await client.from(TABLES.TEACHERS).update(patch).eq('id', id).select().single();
+  if (error) throw new Error(`Could not update teacher: ${error.message}`);
+  return data;
+}
+
+async function insertPrediction(client, prediction) {
+  const { data, error } = await client.from(TABLES.PREDICTIONS).insert([prediction]).select().single();
+  if (error) throw new Error(`Could not save prediction: ${error.message}`);
+  return data;
+}
+
+async function listPredictions(client, institutionId, taskType, targetRefId) {
+  let query = client
+    .from(TABLES.PREDICTIONS)
+    .select('*')
+    .eq('institution_id', institutionId)
+    .eq('task_type', taskType)
+    .order('created_at', { ascending: false });
+  if (targetRefId) query = query.eq('target_ref_id', targetRefId);
+  const { data, error } = await query;
+  if (error) throw new Error(`Could not list predictions: ${error.message}`);
+  return data;
+}
+
+// Privileged: inserts an auto-tracked LLM cost entry. Uses supabaseAdmin deliberately - this
+// runs on every predict call regardless of the calling user's role, so it can't be gated by
+// the same role-based RLS insert policy predictions/cost_entries otherwise require.
+async function insertAutoLlmCostEntry({ institutionId, amountUsd, note, relatedPredictionId, createdBy }) {
+  if (!institutionId || !amountUsd) return null;
+  const { data, error } = await supabaseAdmin
+    .from(TABLES.COST_ENTRIES)
+    .insert([{
+      institution_id: institutionId,
+      category: 'model',
+      amount: amountUsd,
+      source: 'auto_llm',
+      note,
+      related_prediction_id: relatedPredictionId || null,
+      created_by: createdBy || null,
+    }])
+    .select()
+    .single();
+  if (error) {
+    console.warn('Could not log auto LLM cost entry:', error.message);
+    return null;
+  }
+  return data;
+}
+
+module.exports = {
+  clientForToken,
+  listTeachers,
+  getTeacherById,
+  insertTeacher,
+  updateTeacher,
+  insertPrediction,
+  listPredictions,
+  insertAutoLlmCostEntry,
+};

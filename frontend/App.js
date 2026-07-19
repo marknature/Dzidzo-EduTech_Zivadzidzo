@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono';
 
 import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
+import { colors } from './src/theme/colors';
 import AuthScreen from './src/screens/AuthScreen';
 import RootNavigator from './src/navigation/RootNavigator';
 
@@ -23,6 +27,17 @@ async function syncProfile(accessToken) {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+  });
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -71,11 +86,11 @@ export default function App() {
     await supabase.auth.signOut();
   }, []);
 
-  if (loading) {
+  if (!fontsLoaded || loading) {
     return (
-      <View className="flex-1 bg-[#0A0F1D] items-center justify-center">
+      <View className="flex-1 bg-bg items-center justify-center">
         <StatusBar style="light" />
-        <ActivityIndicator color="#3B82F6" />
+        <ActivityIndicator color={colors.gold} />
       </View>
     );
   }

@@ -10,6 +10,7 @@ import ChatScreen from '../screens/ChatScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import CostScreen from '../screens/CostScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import { colors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
 
@@ -17,10 +18,10 @@ const NavTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#0A0F1D',
-    card: '#0A0F1D',
-    border: '#1F2937',
-    primary: '#3B82F6',
+    background: colors.bg,
+    card: colors.bg,
+    border: colors.border,
+    primary: colors.gold,
   },
 };
 
@@ -40,9 +41,9 @@ export default function RootNavigator({ profile, userEmail, onSignOut }) {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: { backgroundColor: '#0A0F1D', borderTopColor: '#1F2937' },
-          tabBarActiveTintColor: '#3B82F6',
-          tabBarInactiveTintColor: '#6B7280',
+          tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+          tabBarActiveTintColor: colors.gold,
+          tabBarInactiveTintColor: colors.inkFaint,
           tabBarIcon: ({ color, size }) => {
             const Icon = ICONS[route.name];
             return Icon ? <Icon color={color} size={size ?? 20} /> : null;

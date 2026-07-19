@@ -3,6 +3,8 @@ const cors = require('cors');
 const supabase = require('./db'); // Import the Supabase client connection
 const { createAudit } = require('./auditService');
 const authRoutes = require('./routes/auth');
+const teachersRoutes = require('./routes/teachers');
+const predictRoutes = require('./routes/predict');
 require('dotenv').config({ quiet: true });
 
 const app = express();
@@ -13,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/auth', authRoutes);
+app.use('/teachers', teachersRoutes);
+app.use('/predict', predictRoutes);
 
 // Base Route
 app.get('/', (req, res) => {
